@@ -136,13 +136,15 @@ describe('pickup', () => {
   });
 
   it('counts San Diego as too far', () => {
-    expect(isNearPickup(32.7157, -117.1611)).toBe(false); // ~70 mi
+    expect(isNearPickup(32.7157, -117.1611)).toBe(false); // ~77.5 mi
   });
 
-  // The incident this guards: Vercel omits geo headers for some requests, and
-  // Number('') is 0, which is a real coordinate in the Gulf of Guinea. Treating
-  // a missing header as a location would show a Costa Mesa banner worldwide.
-  it('treats non-finite coordinates as not near', () => {
+  // (0, 0) is what Number('') yields when Vercel omits a geo header: a real
+  // coordinate (Null Island, Gulf of Guinea), not an obvious sentinel. This
+  // asserts the documented contract (reject it explicitly), not a live save:
+  // (0, 0) is ~7,800 miles from Costa Mesa, so the distance check alone would
+  // already return false here even without the guard.
+  it("a missing geo header, which arrives as Number('') === 0, is never near", () => {
     expect(isNearPickup(NaN, NaN)).toBe(false);
     expect(isNearPickup(Number(''), Number(''))).toBe(false);
   });

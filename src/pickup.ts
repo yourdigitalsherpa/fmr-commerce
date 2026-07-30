@@ -24,7 +24,13 @@ export const PICKUP = {
   ready: 'usually ready within 24 hours',
 } as const;
 
-/** Great-circle distance in miles from the cafe. */
+/**
+ * Great-circle distance in miles from the cafe.
+ *
+ * No non-finite guard here: NaN in, NaN out, by ordinary arithmetic
+ * propagation. `isNearPickup` is the guarded entry point; call this directly
+ * only with input you already trust.
+ */
 export function milesFromPickup(lat: number, lng: number): number {
   const R = 3958.8; // mean earth radius, miles
   const toRad = (d: number) => (d * Math.PI) / 180;
@@ -39,12 +45,18 @@ export function milesFromPickup(lat: number, lng: number): number {
 /**
  * Inside the promo radius.
  *
- * Non-finite input is never near. Callers pass Number(header), and a missing
- * header yields 0, which is a real coordinate off the coast of Africa. Guard
- * here so no caller has to remember.
+ * Non-finite input is never near. Beyond that, `(0, 0)` is rejected on
+ * purpose: callers pass `Number(header)`, and a missing header yields exactly
+ * `0`, which is a real coordinate (Null Island, in the Gulf of Guinea) rather
+ * than an obvious sentinel. Today that guard is purely defensive (Null Island
+ * is ~7,800 miles from Costa Mesa, so the distance check below would already
+ * return false without it), but rejecting it explicitly states the intent
+ * instead of relying on the accident of how far away it happens to be.
+ * Without this line, moving the cafe or widening the radius could someday
+ * make a missing header read as "near" by coincidence.
  */
 export function isNearPickup(lat: number, lng: number): boolean {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
-  if (lat === 0 && lng === 0) return false; // missing headers, not Null Island
+  if (lat === 0 && lng === 0) return false; // missing header, not Null Island
   return milesFromPickup(lat, lng) <= PICKUP.radiusMiles;
 }
