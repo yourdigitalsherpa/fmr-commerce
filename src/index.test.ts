@@ -75,11 +75,25 @@ describe('pricing', () => {
 describe('attribution', () => {
   const attr = { partner: 'SHPRD Coffee Roasters', rep: 'cameron' };
 
-  it('stamps partner and rep on the cart permalink', () => {
+  it('stamps partner and rep on the add-to-cart url', () => {
     const url = new URL(buyUrl('48509234938110', attr));
     expect(url.searchParams.get('attributes[partner]')).toBe('SHPRD Coffee Roasters');
     expect(url.searchParams.get('attributes[rep]')).toBe('cameron');
-    expect(url.pathname).toBe('/cart/48509234938110:1');
+    expect(url.searchParams.get('id')).toBe('48509234938110');
+    expect(url.searchParams.get('quantity')).toBe('1');
+  });
+
+  // The incident: this was `/cart/{id}:{qty}`, a permalink that redirects
+  // straight to checkout. The second-pound nudge and the visible rep-credit
+  // field both live on the cart page only, so every white-label shopper saw
+  // neither. Landing on /cart is the whole point — do not "simplify" this back
+  // to a permalink. `?return_to=/cart` does not work; Shopify ignores it.
+  it('lands on the cart page, NOT checkout', () => {
+    expect(new URL(buyUrl('48509234938110', attr)).pathname).toBe('/cart/add');
+  });
+
+  it('honours qty', () => {
+    expect(new URL(buyUrl('48509234938110', attr, { qty: 2 })).searchParams.get('quantity')).toBe('2');
   });
 
   it('adds selling_plan only when subscribing', () => {
