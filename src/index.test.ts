@@ -8,6 +8,9 @@ import {
   priceFor,
   variantId,
   findPlan,
+  PICKUP,
+  milesFromPickup,
+  isNearPickup,
 } from './index';
 
 /**
@@ -116,5 +119,31 @@ describe('selling plans', () => {
   it('does not contain the two ids that were deleted upstream', () => {
     const dead = ['5663391998', '5663457534'];
     for (const id of dead) expect(SELLING_PLANS.some((p) => p.id === id)).toBe(false);
+  });
+});
+
+describe('pickup', () => {
+  it('is zero miles from the cafe itself', () => {
+    expect(milesFromPickup(PICKUP.lat, PICKUP.lng)).toBeCloseTo(0, 5);
+  });
+
+  it('counts nearby Orange County as near', () => {
+    expect(isNearPickup(33.6846, -117.8265)).toBe(true); // Irvine, ~6 mi
+  });
+
+  it('counts Los Angeles as near, since it is inside the 40 mile radius', () => {
+    expect(isNearPickup(34.0522, -118.2437)).toBe(true); // ~34 mi
+  });
+
+  it('counts San Diego as too far', () => {
+    expect(isNearPickup(32.7157, -117.1611)).toBe(false); // ~70 mi
+  });
+
+  // The incident this guards: Vercel omits geo headers for some requests, and
+  // Number('') is 0, which is a real coordinate in the Gulf of Guinea. Treating
+  // a missing header as a location would show a Costa Mesa banner worldwide.
+  it('treats non-finite coordinates as not near', () => {
+    expect(isNearPickup(NaN, NaN)).toBe(false);
+    expect(isNearPickup(Number(''), Number(''))).toBe(false);
   });
 });
