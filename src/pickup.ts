@@ -16,6 +16,18 @@
  * Basic plan and gates on browser timezone instead.
  */
 export const PICKUP = {
+  // cafe, address and ready are INFORMATIONAL ONLY — read nowhere in code.
+  // Only lat, lng and radiusMiles are actually consumed (by milesFromPickup /
+  // isNearPickup below). The customer-facing copy that names the cafe and
+  // address is locked and deliberately duplicated per surface instead of
+  // read from here: it's hardcoded in each of the 11 banner components (one
+  // per white label), in fmr-pickup-nudge.js (the Shopify theme asset), and
+  // in set-pickup-instructions.mjs (the Shopify admin script) — each partner
+  // styles its own markup, so there is no single rendering surface to source
+  // from. Editing these three fields changes NOTHING a customer sees. If the
+  // cafe or address ever changes, you must also update all of the banners
+  // and set-pickup-instructions.mjs — this file alone is not the source of
+  // truth for that copy, only for the geo math.
   cafe: 'Kingdom Coffee Houses',
   address: '1941 Newport Blvd, Costa Mesa, CA 92627',
   lat: 33.6411,

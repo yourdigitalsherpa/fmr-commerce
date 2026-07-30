@@ -148,4 +148,27 @@ describe('pickup', () => {
     expect(isNearPickup(NaN, NaN)).toBe(false);
     expect(isNearPickup(Number(''), Number(''))).toBe(false);
   });
+
+  // The boundary is `<=`, not `<` (see isNearPickup's `<= PICKUP.radiusMiles`).
+  // Derive a coordinate almost exactly PICKUP.radiusMiles (40 mi) from the
+  // cafe by moving due north only: with dLng = 0, the haversine formula
+  // reduces to distance = R * dLat(radians) exactly (no lng cross-term to
+  // account for), so 1 degree of latitude is ~69.0 mi and ~0.578-0.579
+  // degrees north lands right on the 40 mi line. Measured with
+  // milesFromPickup (not assumed) before picking which side of the line each
+  // point actually falls on:
+  //   +0.5780 deg -> 39.9364 mi (measured)  -> just inside
+  //   +0.5790 deg -> 40.0055 mi (measured)  -> just outside
+  const justInsideLat = PICKUP.lat + 0.578;
+  const justOutsideLat = PICKUP.lat + 0.579;
+
+  it('the boundary coordinates actually bracket the 40 mi radius', () => {
+    expect(milesFromPickup(justInsideLat, PICKUP.lng)).toBeLessThanOrEqual(PICKUP.radiusMiles);
+    expect(milesFromPickup(justOutsideLat, PICKUP.lng)).toBeGreaterThan(PICKUP.radiusMiles);
+  });
+
+  it('is near a point just inside the radius, and not near a point just outside it', () => {
+    expect(isNearPickup(justInsideLat, PICKUP.lng)).toBe(true);
+    expect(isNearPickup(justOutsideLat, PICKUP.lng)).toBe(false);
+  });
 });
