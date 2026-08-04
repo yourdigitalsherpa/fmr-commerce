@@ -71,7 +71,28 @@ describe('pricing', () => {
   });
 
   it('rounds to cents', () => {
-    expect(priceFor('319.00', SELLING_PLANS[0].id).display).toBe('303.05');
+    expect(priceFor('359.00', SELLING_PLANS[0].id).display).toBe('341.05');
+  });
+
+  // Daniel Crenshaw, 2026-08-03: "make the hard default NO MATTER WHAT VOLUME we
+  // charge 17.95 always." Andrew confirmed and repriced on 2026-08-03.
+  //
+  // This is not cosmetic. scripts/shopify/registry.json in the kch repo turns the
+  // $/lb ACTUALLY CHARGED into a commission rate, so a bag priced under $17.95/lb
+  // silently pays its seller a lower rate. The 5 lb bag sat at $84.75 ($16.95/lb)
+  // and the 20 lb at $319.00 ($15.95/lb), which is why order #1027 paid John B
+  // 15.3% instead of 17% with nothing appearing to be wrong.
+  //
+  // If a size is ever meant to be cheaper per pound, that is a pricing decision
+  // and it must change the commission ladder in the same breath. Do not simply
+  // delete this test.
+  it('prices EVERY bag size at exactly $17.95 per pound', () => {
+    for (const origin of CATALOG) {
+      for (const v of origin.variants) {
+        const lbs = Number(/([\d.]+)\s*lb/i.exec(v.weight)![1]);
+        expect(Number(v.price) / lbs).toBeCloseTo(17.95, 10);
+      }
+    }
   });
 });
 

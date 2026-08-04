@@ -40,8 +40,8 @@ export const CATALOG: readonly CatalogOrigin[] = [
     variants: [
       { weight: '1 lb', price: '17.95', ids: { Light: '48509234938110', Medium: '48586864197886', Dark: '48586864230654', Espresso: '48586938188030' } },
       { weight: '2 lb', price: '35.90', ids: { Light: '48509234970878', Medium: '48586864263422', Dark: '48586864296190', Espresso: '48586938220798' } },
-      { weight: '5 lb', price: '84.75', ids: { Light: '48509235003646', Medium: '48586864328958', Dark: '48586864361726', Espresso: '48586938253566' } },
-      { weight: '20 lb', price: '319.00', ids: { Light: '48509235036414', Medium: '48586864394494', Dark: '48586864427262', Espresso: '48586938286334' } },
+      { weight: '5 lb', price: '89.75', ids: { Light: '48509235003646', Medium: '48586864328958', Dark: '48586864361726', Espresso: '48586938253566' } },
+      { weight: '20 lb', price: '359.00', ids: { Light: '48509235036414', Medium: '48586864394494', Dark: '48586864427262', Espresso: '48586938286334' } },
     ],
   },
   {
@@ -50,8 +50,8 @@ export const CATALOG: readonly CatalogOrigin[] = [
     variants: [
       { weight: '1 lb', price: '17.95', ids: { Light: '48509235069182', Medium: '48586864886014', Dark: '48586864918782', Espresso: '48586938384638' } },
       { weight: '2 lb', price: '35.90', ids: { Light: '48509235101950', Medium: '48586864951550', Dark: '48586864984318', Espresso: '48586938417406' } },
-      { weight: '5 lb', price: '84.75', ids: { Light: '48509235134718', Medium: '48586865017086', Dark: '48586865049854', Espresso: '48586938450174' } },
-      { weight: '20 lb', price: '319.00', ids: { Light: '48509235167486', Medium: '48586865082622', Dark: '48586865115390', Espresso: '48586938482942' } },
+      { weight: '5 lb', price: '89.75', ids: { Light: '48509235134718', Medium: '48586865017086', Dark: '48586865049854', Espresso: '48586938450174' } },
+      { weight: '20 lb', price: '359.00', ids: { Light: '48509235167486', Medium: '48586865082622', Dark: '48586865115390', Espresso: '48586938482942' } },
     ],
   },
 ];
