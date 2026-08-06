@@ -30,16 +30,24 @@ export type SellingPlan = {
  * Last verified: 2026-07-27.
  */
 export const SELLING_PLANS: readonly SellingPlan[] = [
-  { id: '5663424766', label: 'Every month', discountPercent: 5 },
-  { id: '5690294526', label: 'Every 2 weeks', discountPercent: 5 },
+  { id: '5663424766', label: 'Every month', discountPercent: 0 },
+  { id: '5690294526', label: 'Every 2 weeks', discountPercent: 0 },
 ];
 
 /**
- * The headline discount, for copy that quotes it ("save 5%"). Read this rather
- * than hardcoding a number in a sentence, so marketing copy cannot drift away
- * from what checkout actually charges.
+ * The headline discount, for copy that quotes it. Read this rather than
+ * hardcoding a number in a sentence, so marketing copy cannot drift away from
+ * what checkout actually charges.
+ *
+ * ZERO as of 2026-08-06 (Andrew): subscriptions are no longer discounted. They
+ * still exist, they are just sold on convenience and steady support instead of
+ * a percentage. Copy must not quote a saving while this is 0 — `priceFor`
+ * returns `original: null` so there is nothing to strike through either.
+ *
+ * This has to stay in step with the live Shopify selling plans, which are what
+ * checkout actually applies. Verify with `node kch/scripts/shopify/selling-plans.mjs`.
  */
-export const SUBSCRIPTION_DISCOUNT_PERCENT = 5;
+export const SUBSCRIPTION_DISCOUNT_PERCENT = 0;
 
 /** Look a plan up by id. Returns null for one-time purchases. */
 export function findPlan(planId: string | null | undefined): SellingPlan | null {

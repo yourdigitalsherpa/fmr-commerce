@@ -34,6 +34,19 @@ export function priceFor(basePrice: string, planId: string | null | undefined): 
   // Fall back to the headline discount if a plan somehow lacks one, so a
   // subscriber is never quoted MORE than the advertised saving.
   const pct = plan.discountPercent ?? SUBSCRIPTION_DISCOUNT_PERCENT;
+
+  // An undiscounted subscription still has a cadence, but it has no saving, so
+  // `original` must be null. Returning basePrice for both would strike through
+  // a price and replace it with the identical number.
+  if (pct <= 0) {
+    return {
+      display: basePrice,
+      original: null,
+      discountPercent: 0,
+      cadence: plan.label.toLowerCase(),
+    };
+  }
+
   const discounted = (Number(basePrice) * (1 - pct / 100)).toFixed(2);
   return {
     display: discounted,

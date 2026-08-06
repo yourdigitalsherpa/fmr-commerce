@@ -47,12 +47,14 @@ describe('catalogue', () => {
 });
 
 describe('pricing', () => {
-  // The bug: three live sites showed 17.95 while the button said "save 5%".
-  it('discounts the price when a plan is selected', () => {
+  // Andrew, 2026-08-06: subscriptions are no longer discounted. They keep the
+  // cadence and lose the saving. The trap this guards is a struck-through
+  // price sitting next to an identical number.
+  it('keeps a subscription at full price with nothing to strike', () => {
     const v = priceFor('17.95', SELLING_PLANS[0].id);
-    expect(v.display).toBe('17.05');
-    expect(v.original).toBe('17.95');
-    expect(v.discountPercent).toBe(5);
+    expect(v.display).toBe('17.95');
+    expect(v.original).toBeNull();
+    expect(v.discountPercent).toBe(0);
     expect(v.cadence).toBe('every month');
   });
 
@@ -64,14 +66,25 @@ describe('pricing', () => {
     expect(v.cadence).toBeNull();
   });
 
+  // The original bug: three live sites showed 17.95 while the button said
+  // "save 5%". Whatever the headline number is, every plan must actually
+  // deliver at least it, or copy over-promises what checkout charges.
   it('never quotes more than the advertised saving', () => {
     for (const p of SELLING_PLANS) {
       expect(p.discountPercent).toBeGreaterThanOrEqual(SUBSCRIPTION_DISCOUNT_PERCENT);
     }
   });
 
-  it('rounds to cents', () => {
-    expect(priceFor('359.00', SELLING_PLANS[0].id).display).toBe('341.05');
+  // Still exercised so the rounding path does not rot while the rate is 0.
+  it('rounds to cents when a discount is in force', () => {
+    const v = priceFor('359.00', SELLING_PLANS[0].id);
+    if (SUBSCRIPTION_DISCOUNT_PERCENT === 0) {
+      expect(v.display).toBe('359.00');
+      expect(v.original).toBeNull();
+    } else {
+      expect(v.display).toBe((359 * (1 - SUBSCRIPTION_DISCOUNT_PERCENT / 100)).toFixed(2));
+      expect(v.original).toBe('359.00');
+    }
   });
 
   // Daniel Crenshaw, 2026-08-03: "make the hard default NO MATTER WHAT VOLUME we
