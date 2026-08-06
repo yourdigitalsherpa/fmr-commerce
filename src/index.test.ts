@@ -3,6 +3,8 @@ import {
   CATALOG,
   ROAST_LEVELS,
   SELLING_PLANS,
+  WEIGHTS,
+  WEIGHT_FORMATS,
   SUBSCRIPTION_DISCOUNT_PERCENT,
   buyUrl,
   priceFor,
@@ -43,6 +45,20 @@ describe('catalogue', () => {
   it('resolves a variant id by origin/weight/roast', () => {
     expect(variantId('zambia', '1 lb', 'Light')).toBe('48509234938110');
     expect(variantId('uganda', '20 lb', 'Espresso')).toBe('48586938482942');
+  });
+});
+
+describe('weight formats', () => {
+  // Sites called the 20 lb a "case", which reads like one 20 lb container.
+  // Andrew, 2026-08-06: "It exists but we ship them as four 5lb bags."
+  it('describes the 20 lb as four 5 lb bags', () => {
+    expect(WEIGHT_FORMATS['20 lb']).toBe('Four 5 lb bags');
+  });
+
+  it('covers every weight, so a new size cannot ship undescribed', () => {
+    for (const w of WEIGHTS) {
+      expect(WEIGHT_FORMATS[w], `no format for ${w}`).toBeTruthy();
+    }
   });
 });
 

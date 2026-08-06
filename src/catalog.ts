@@ -56,6 +56,25 @@ export const CATALOG: readonly CatalogOrigin[] = [
   },
 ];
 
+/**
+ * How each weight physically arrives.
+ *
+ * Andrew, 2026-08-06: "It exists but we ship them as four 5lb bags." The 20 lb
+ * line is not a 20 lb sack and never was — the roaster does not bag that size.
+ * Sites were calling it a "case", which reads like one container and sets the
+ * wrong expectation at the door.
+ *
+ * Read this rather than writing the sentence per repo, the same reason prices
+ * live here. Note it says nothing about per-pound price: since 2026-08-03 every
+ * size is $17.95/lb, so no page may pitch a larger size as cheaper per pound.
+ */
+export const WEIGHT_FORMATS: Record<Weight, string> = {
+  '1 lb': 'One 1 lb bag',
+  '2 lb': 'One 2 lb bag',
+  '5 lb': 'One 5 lb bag',
+  '20 lb': 'Four 5 lb bags',
+};
+
 /** Espresso is a medium-dark roast, not a bean. Sites that show roast guidance say so. */
 export const ROAST_NOTES: Record<Roast, string> = {
   Light: 'Roasted brightest. The most origin character in the cup.',

@@ -29,6 +29,7 @@ export {
   ROAST_LEVELS,
   ROAST_NOTES,
   WEIGHTS,
+  WEIGHT_FORMATS,
   getOrigin,
   variantId,
   type CatalogOrigin,
