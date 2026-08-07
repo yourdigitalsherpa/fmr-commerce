@@ -19,6 +19,7 @@
 export {
   SHOP_DOMAIN,
   SELLING_PLANS,
+  plansForWeight,
   SUBSCRIPTION_DISCOUNT_PERCENT,
   findPlan,
   type SellingPlan,

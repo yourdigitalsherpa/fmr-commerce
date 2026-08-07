@@ -3,6 +3,7 @@ import {
   CATALOG,
   ROAST_LEVELS,
   SELLING_PLANS,
+  plansForWeight,
   WEIGHTS,
   WEIGHT_FORMATS,
   SUBSCRIPTION_DISCOUNT_PERCENT,
@@ -62,12 +63,55 @@ describe('weight formats', () => {
   });
 });
 
+describe('selling plan coverage', () => {
+  // 2026-08-06: the Subscribe & Save group was narrowed to the 20 lb variants,
+  // which left 1, 2 and 5 lb with NO subscribe control at all. The
+  // product-level check still looked healthy, so nothing caught it. This is
+  // the test that would have.
+  it('offers a plan for every weight we sell', () => {
+    for (const w of WEIGHTS) {
+      expect(plansForWeight(w).length, `${w} has no selling plan`).toBeGreaterThan(0);
+    }
+  });
+
+  // The 20 lb is the only size that carries a discount. It is ALSO attached to
+  // the 0% group on Shopify, so the risk is offering a 20 lb buyer the plan
+  // that saves them nothing.
+  it('only ever offers the discounted plans on 20 lb', () => {
+    for (const p of plansForWeight('20 lb')) expect(p.discountPercent).toBe(5);
+  });
+
+  it('offers no discount on the smaller sizes', () => {
+    for (const w of ['1 lb', '2 lb', '5 lb'] as const) {
+      for (const p of plansForWeight(w)) expect(p.discountPercent).toBe(0);
+    }
+  });
+
+  it('gives every weight both cadences', () => {
+    for (const w of WEIGHTS) {
+      const labels = plansForWeight(w).map((p) => p.label).sort();
+      expect(labels, `${w}`).toEqual(['Every 2 weeks', 'Every month']);
+    }
+  });
+
+  it('prices a 20 lb subscription 5% down, with something to strike', () => {
+    const plan = plansForWeight('20 lb')[0];
+    const v = priceFor('359.00', plan.id);
+    expect(v.display).toBe('341.05');
+    expect(v.original).toBe('359.00');
+    expect(v.discountPercent).toBe(5);
+  });
+});
+
 describe('pricing', () => {
   // Andrew, 2026-08-06: subscriptions are no longer discounted. They keep the
   // cadence and lose the saving. The trap this guards is a struck-through
   // price sitting next to an identical number.
   it('keeps a subscription at full price with nothing to strike', () => {
-    const v = priceFor('17.95', SELLING_PLANS[0].id);
+    // Keyed by weight, not SELLING_PLANS[0]: the first entry is now a 20 lb
+    // plan that DOES discount, and indexing into this array is exactly what
+    // store.ts warns against.
+    const v = priceFor('17.95', plansForWeight('1 lb')[0].id);
     expect(v.display).toBe('17.95');
     expect(v.original).toBeNull();
     expect(v.discountPercent).toBe(0);
@@ -91,16 +135,9 @@ describe('pricing', () => {
     }
   });
 
-  // Still exercised so the rounding path does not rot while the rate is 0.
-  it('rounds to cents when a discount is in force', () => {
-    const v = priceFor('359.00', SELLING_PLANS[0].id);
-    if (SUBSCRIPTION_DISCOUNT_PERCENT === 0) {
-      expect(v.display).toBe('359.00');
-      expect(v.original).toBeNull();
-    } else {
-      expect(v.display).toBe((359 * (1 - SUBSCRIPTION_DISCOUNT_PERCENT / 100)).toFixed(2));
-      expect(v.original).toBe('359.00');
-    }
+  it('rounds to cents', () => {
+    const v = priceFor('359.00', plansForWeight('20 lb')[0].id);
+    expect(v.display).toBe('341.05');
   });
 
   // Daniel Crenshaw, 2026-08-03: "make the hard default NO MATTER WHAT VOLUME we

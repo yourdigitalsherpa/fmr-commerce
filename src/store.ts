@@ -4,6 +4,8 @@
  * nowhere else.
  */
 
+import type { Weight } from './catalog';
+
 /** The one store every white-label checks out through. */
 export const SHOP_DOMAIN = 'https://ywszd1-1j.myshopify.com';
 
@@ -14,6 +16,14 @@ export type SellingPlan = {
   label: string;
   /** Percent off, as an integer. */
   discountPercent: number;
+  /**
+   * The weights this plan is actually attached to on Shopify.
+   *
+   * A selling plan is not offered store-wide. It is attached to specific
+   * variants, and passing a plan id for a variant it is not attached to sends
+   * the buyer to a broken checkout. Offer a plan only for a weight listed here.
+   */
+  weights: readonly Weight[];
 };
 
 /**
@@ -30,19 +40,45 @@ export type SellingPlan = {
  * Last verified: 2026-07-27.
  */
 export const SELLING_PLANS: readonly SellingPlan[] = [
-  { id: '5663424766', label: 'Every month', discountPercent: 0 },
-  { id: '5690294526', label: 'Every 2 weeks', discountPercent: 0 },
+  // "Subscribe & Save" (group 2693267710). 20 lb only, and the only plans
+  // that discount anything.
+  { id: '5663424766', label: 'Every month', discountPercent: 5, weights: ['20 lb'] },
+  { id: '5690294526', label: 'Every 2 weeks', discountPercent: 5, weights: ['20 lb'] },
+  // "Subscribe to The Coffee Club" (group 2734424318). Every size, no discount.
+  // It is attached to 20 lb as well, but we deliberately do not offer it there:
+  // a 20 lb buyer should always get the 5% plan, never the 0% one by accident.
+  { id: '5705826558', label: 'Every month', discountPercent: 0, weights: ['1 lb', '2 lb', '5 lb'] },
+  { id: '5705793790', label: 'Every 2 weeks', discountPercent: 0, weights: ['1 lb', '2 lb', '5 lb'] },
 ];
+
+/**
+ * The plans a given weight can actually be bought on, best discount first.
+ *
+ * Always go through this rather than reading SELLING_PLANS directly. On
+ * 2026-08-06 the Subscribe & Save group was narrowed to the 20 lb variants,
+ * which silently left every smaller size with no subscribe option while the
+ * product-level check still looked healthy. Verify coverage with
+ * `node kch/scripts/shopify/subscription-coverage.mjs`.
+ */
+export function plansForWeight(weight: Weight): readonly SellingPlan[] {
+  return SELLING_PLANS.filter((p) => p.weights.includes(weight)).sort(
+    (a, b) => b.discountPercent - a.discountPercent
+  );
+}
 
 /**
  * The headline discount, for copy that quotes it. Read this rather than
  * hardcoding a number in a sentence, so marketing copy cannot drift away from
  * what checkout actually charges.
  *
- * ZERO as of 2026-08-06 (Andrew): subscriptions are no longer discounted. They
- * still exist, they are just sold on convenience and steady support instead of
- * a percentage. Copy must not quote a saving while this is 0 — `priceFor`
- * returns `original: null` so there is nothing to strike through either.
+ * ZERO as of 2026-08-06 (Andrew): the everyday subscription is not discounted.
+ * It is sold on convenience and steady support instead of a percentage.
+ *
+ * The 20 lb is the ONE exception and carries 5%, which is why this constant is
+ * no longer the whole story. Do not use it to price anything — use
+ * `priceFor(price, planId)`, which reads the rate off the plan. This is only
+ * for copy that speaks about subscriptions in general, and while it is 0 that
+ * copy must not quote a saving.
  *
  * This has to stay in step with the live Shopify selling plans, which are what
  * checkout actually applies. Verify with `node kch/scripts/shopify/selling-plans.mjs`.
