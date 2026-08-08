@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   CATALOG,
+  GRINDS,
   ROAST_LEVELS,
   SELLING_PLANS,
   plansForWeight,
@@ -257,5 +258,68 @@ describe('pickup', () => {
   it('is near a point just inside the radius, and not near a point just outside it', () => {
     expect(isNearPickup(justInsideLat, PICKUP.lng)).toBe(true);
     expect(isNearPickup(justOutsideLat, PICKUP.lng)).toBe(false);
+  });
+});
+
+
+// ---------------------------------------------------------------- grind
+describe('grind', () => {
+  it('offers exactly whole and ground', () => {
+    expect([...GRINDS]).toEqual(['Whole', 'Ground']);
+  });
+
+  it('defaults to whole, so three-argument callers are unaffected', () => {
+    for (const o of CATALOG) {
+      for (const v of o.variants) {
+        for (const r of ROAST_LEVELS) {
+          expect(variantId(o.slug, v.weight, r)).toBe(v.ids[r]);
+          expect(variantId(o.slug, v.weight, r, 'Whole')).toBe(v.ids[r]);
+        }
+      }
+    }
+  });
+
+  it('resolves ground to a different variant in every cell', () => {
+    for (const o of CATALOG) {
+      for (const v of o.variants) {
+        for (const r of ROAST_LEVELS) {
+          const ground = variantId(o.slug, v.weight, r, 'Ground');
+          expect(ground).toBe(v.groundIds[r]);
+          expect(ground).not.toBe(v.ids[r]);
+        }
+      }
+    }
+  });
+
+  it('has 64 distinct variant ids across the catalogue', () => {
+    const seen = new Set<string>();
+    for (const o of CATALOG) {
+      for (const v of o.variants) {
+        for (const r of ROAST_LEVELS) {
+          seen.add(v.ids[r]);
+          seen.add(v.groundIds[r]);
+        }
+      }
+    }
+    expect(seen.size).toBe(64);
+  });
+
+  it('every id is a 14-digit Shopify variant id', () => {
+    for (const o of CATALOG) {
+      for (const v of o.variants) {
+        for (const r of ROAST_LEVELS) {
+          expect(v.ids[r]).toMatch(/^\d{14}$/);
+          expect(v.groundIds[r]).toMatch(/^\d{14}$/);
+        }
+      }
+    }
+  });
+
+  it('grind does not change the price', () => {
+    // Shopify charges the same for both. Any site that prices off the weight
+    // alone stays correct.
+    for (const o of CATALOG) {
+      for (const v of o.variants) expect(v.price).toMatch(/^\d+\.\d{2}$/);
+    }
   });
 });

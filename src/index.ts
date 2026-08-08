@@ -27,6 +27,7 @@ export {
 
 export {
   CATALOG,
+  GRINDS,
   ROAST_LEVELS,
   ROAST_NOTES,
   WEIGHTS,
@@ -35,6 +36,7 @@ export {
   variantId,
   type CatalogOrigin,
   type CatalogVariant,
+  type Grind,
   type OriginSlug,
   type Roast,
   type Weight,

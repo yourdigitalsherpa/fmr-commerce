@@ -1,6 +1,6 @@
 {
   "name": "@fmr/commerce",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": false,
   "description": "Shared commerce layer for every Fourth Man Roasters white-label site: the store facts, the product catalogue, attribution, and the pricing math.",
   "license": "UNLICENSED",
